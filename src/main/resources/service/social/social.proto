@@ -1,0 +1,25 @@
+package eu.trentorise.smartcampus.services.social.data.message;
+
+message NewsList {
+    repeated News news = 1;
+    required int64 socialId = 2;
+}
+
+message News {
+    required int64 id = 1;
+    required int64 creationTimestamp = 2;
+    required int64 entityId = 3;
+    required string entityType = 4;
+    required int64 topicId = 5;
+    required string topicName = 6;
+	required bool update = 7;
+	optional string title = 8;
+	optional int64 providerId = 9;
+	optional SEntity related = 10;
+}
+
+message SEntity {
+	required int64 id = 1;
+	optional string title = 2;
+	required string entityType = 3;
+}
