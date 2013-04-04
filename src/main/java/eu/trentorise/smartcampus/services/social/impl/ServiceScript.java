@@ -23,7 +23,6 @@ import it.unitn.disi.sweb.webapi.model.smartcampus.livetopics.LiveTopicNews;
 import it.unitn.disi.sweb.webapi.model.smartcampus.livetopics.LiveTopicStatus;
 import it.unitn.disi.sweb.webapi.model.smartcampus.livetopics.LiveTopicSubject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -31,6 +30,7 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
+import eu.trentorise.smartcampus.common.SemanticHelper;
 import eu.trentorise.smartcampus.services.social.data.message.Social.News;
 import eu.trentorise.smartcampus.services.social.data.message.Social.NewsList;
 import eu.trentorise.smartcampus.services.social.data.message.Social.SEntity;
@@ -39,7 +39,7 @@ public class ServiceScript {
 
 	private static final Logger logger = Logger.getLogger(ServiceScript.class);
 	private static final String SE_HOST = "213.21.154.85";
-	private static final String SE_PORT = "8080";
+	private static final int SE_PORT = 8080;
 	private static final String KEY_HOST = "host";
 	private static final String KEY_PORT = "port";
 
@@ -53,11 +53,17 @@ public class ServiceScript {
 
 			Thread.currentThread().setContextClassLoader(
 					SCWebApiClient.class.getClassLoader());
-			client = SCWebApiClient.getInstance(Locale.ENGLISH,
-					props.getProperty(KEY_HOST, SE_HOST),
-					Integer.parseInt(props.getProperty(KEY_PORT, SE_PORT)));
-		} catch (IOException e1) {
-			logger.error(e1);
+			client = SCWebApiClient.getInstance(Locale.ENGLISH, props.getProperty(KEY_HOST), Integer.parseInt(props.getProperty(KEY_PORT)));
+		} catch (Throwable e) {
+			logger.error(e);
+			client = SCWebApiClient.getInstance(Locale.ENGLISH,SE_HOST, SE_PORT);
+		}
+		try {
+			SemanticHelper.getSCCommunityEntityBase(client);
+		} catch (WebApiException e) {
+			logger.error(e);
+		} finally {
+			Thread.currentThread().setContextClassLoader(original);
 		}
 	}
 
@@ -65,8 +71,7 @@ public class ServiceScript {
 		Long actorId = Long.parseLong(id);
 		List<News> tempList = new ArrayList<News>();
 		try {
-			List<LiveTopic> topics = client.readLiveTopics(actorId,
-					LiveTopicStatus.ACTIVE, false);
+			List<LiveTopic> topics = client.readLiveTopics(actorId, LiveTopicStatus.ACTIVE, false);
 			for (LiveTopic lt : topics) {
 				for (LiveTopicNews news : client.readLiveTopicNews(lt.getId(), null)) {
 					tempList.add(createNews(news, lt));
@@ -75,6 +80,11 @@ public class ServiceScript {
 		} catch (WebApiException e) {
 			logger.error("Exception getting topic news for user " + actorId, e);
 		}
+//		try {
+//			client.deleteLiveTopicNews(actorId, null, null);
+//		} catch (WebApiException e) {
+//			logger.error("Exception deleting topics for user " + actorId, e);
+//		}
 		return NewsList.newBuilder().addAllNews(tempList).setSocialId(actorId).build();
 	}
 
