@@ -38,7 +38,7 @@ import eu.trentorise.smartcampus.services.social.data.message.Social.SEntity;
 public class ServiceScript {
 
 	private static final Logger logger = Logger.getLogger(ServiceScript.class);
-	private static final String SE_HOST = "213.21.154.85";
+	private static final String SE_HOST = "213.21.154.91";
 	private static final int SE_PORT = 8080;
 	private static final String KEY_HOST = "host";
 	private static final String KEY_PORT = "port";
@@ -76,15 +76,11 @@ public class ServiceScript {
 				for (LiveTopicNews news : client.readLiveTopicNews(lt.getId(), null)) {
 					tempList.add(createNews(news, lt));
 				}
+				client.deleteLiveTopicNews(null, lt.getId(), null);
 			}
 		} catch (WebApiException e) {
 			logger.error("Exception getting topic news for user " + actorId, e);
 		}
-//		try {
-//			client.deleteLiveTopicNews(actorId, null, null);
-//		} catch (WebApiException e) {
-//			logger.error("Exception deleting topics for user " + actorId, e);
-//		}
 		return NewsList.newBuilder().addAllNews(tempList).setSocialId(actorId).build();
 	}
 
