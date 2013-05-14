@@ -96,6 +96,7 @@ public class ServiceScript {
 				// the same object is updated
 				update = true;
 			} else {
+				update = !entity.getCreationTime().equals(entity.getModificationTime());
 				Entity relEntity = client.readEntity(subject.getEntityId(), null);
 				SEntity.Builder builder = SEntity.newBuilder();
 				builder.setEntityType(relEntity.getEtype().getName())
